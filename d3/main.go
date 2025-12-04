@@ -2,29 +2,35 @@ package main
 
 import (
 	"fmt"
-	"iter"
 	"os"
 	"strconv"
 	"strings"
 )
 
-func findMax(input iter.Seq[string]) int {
+func findMax(batteryCount int, input []string) int {
 	var result int
-	for d := range input {
-		highest := 0
-		for i := 0; i < len(d); i++ {
-			for j := 0; j < len(d); j++ {
-				if i == j {
-					continue
-				}
-				num, _ := strconv.Atoi(string([]byte{d[i], d[j]}))
-				if num > highest && i < j {
-					highest = num
-				}
+	findNextNumber := func(input string, start, position int) (byte, int) {
+		var h byte = 0
+		var pos int = start
+		for i := start; i <= len(input)-(batteryCount-position); i++ {
+			if input[i] > h {
+				h = input[i]
+				pos = i + 1
 			}
 		}
-		fmt.Printf("Input: %s, Joltage: %d\n", d, highest)
-		result += highest
+		return h, pos
+	}
+	for _, row := range input {
+		joltage := make([]byte, batteryCount)
+		startPos := 0
+		for i := range joltage {
+			joltage[i], startPos = findNextNumber(row, startPos, i)
+		}
+		sum, err := strconv.Atoi(string(joltage))
+		if err != nil {
+			panic(err)
+		}
+		result += sum
 	}
 	return result
 }
@@ -37,7 +43,8 @@ func main() {
 	if b, err = os.ReadFile("input-go.txt"); err != nil {
 		panic(err)
 	}
-	DATA := strings.SplitSeq(string(b), "\n")
+	DATA := strings.Split(string(b), "\n")
 
-	fmt.Println("Solution for Day 3 Part 1:", findMax(DATA))
+	fmt.Println("Solution for Day 3 Part 1:", findMax(2, DATA))
+	fmt.Println("Solution for Day 3 Part 2:", findMax(12, DATA))
 }
